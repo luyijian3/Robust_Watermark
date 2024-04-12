@@ -44,7 +44,7 @@ python analysis_transform_model.py  --embedding_file data/embeddings/train_embed
 - generate watermarked text & detect，set `--llm_path` and `--embedding_model` by yourself
 
   ```
-  python watermark_and_detect.py --watermark_type context --base_model gpt2 --llm_path gpt2 --generate_number 10 --delta 1 --chunk_size 10 --max_new_tokens 200 --data_path data/dataset/c4_train_sample.jsonl --output_path output.json --transform_model model/transform_model_cbert.pth --embedding_model perceptiveshawty/compositional-bert-large-uncased  --decode_method sample
+  python watermark_and_detect.py --watermark_type context --base_model llava --llm_path llava-hf/llava-v1.6-mistral-7b-hf --generate_number 10 --delta 1 --chunk_size 10 --max_new_tokens 200 --data_path data/dataset/c4_train_sample.jsonl --output_path output.json --transform_model model/transform_model_cbert.pth --embedding_model perceptiveshawty/compositional-bert-large-uncased  --decode_method sample
   ```
 
   The format of output.json is as follows:
