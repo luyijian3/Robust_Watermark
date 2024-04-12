@@ -9,8 +9,7 @@ import os
 from transformers import LlamaTokenizer, AutoModelForCausalLM, AutoTokenizer
 from tqdm import tqdm
 
-from PIL import Image
-import requests
+from .util import load_image_local
 
 def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -46,8 +45,7 @@ def main(args):
     for line in lines:
         #data = json.loads(line)
         #text = data['text']
-        url = "http://images.cocodataset.org/val2017/000000039769.jpg"
-        image = Image.open(requests.get(url, stream=True).raw)
+        image = load_image_local('./text.png')
         text = "[INST] <image>\nWhat is shown in this image? [/INST]"
         words = text.split()
 
