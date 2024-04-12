@@ -27,11 +27,13 @@ def main(args):
         processor.tokenizer.pad_token = processor.tokenizer.eos_token
         model.config.pad_token_id = model.config.eos_token_id
 
+    target_model_size=model.voab_size
+
     if args.watermark_type == "window": # use a window of previous tokens to hash, e.g. KGW
-        watermark_model = WatermarkWindow(device, args.window_size, processor)
+        watermark_model = WatermarkWindow(device, args.window_size, processor,target_model_size)
         logits_processor = WatermarkLogitsProcessor(watermark_model)
     elif args.watermark_type == "context":
-        watermark_model = WatermarkContext(device, args.chunk_size, processor, delta = args.delta,transform_model_path=args.transform_model, embedding_model=args.embedding_model)
+        watermark_model = WatermarkContext(device, args.chunk_size, processor,target_model_size, delta = args.delta,transform_model_path=args.transform_model, embedding_model=args.embedding_model)
         logits_processor = WatermarkLogitsProcessor(watermark_model)
     else:
         watermark_model, logits_processor = None, None
