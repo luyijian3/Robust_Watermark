@@ -49,8 +49,7 @@ def main(args):
         text = "[INST] <image>\n Can you help to describe using a few words about what is shown in this image? [/INST]"
         words = text.split()
 
-        if len(words) < args.max_new_tokens or len(words)> 2*args.max_new_tokens:
-            print('stop here')
+        if len(words) < args.prompt_size or len(words)> 2*args.max_new_tokens:
             continue
         
         words = words[:args.prompt_size]
