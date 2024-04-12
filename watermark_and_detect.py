@@ -9,6 +9,9 @@ import os
 from transformers import LlamaTokenizer, AutoModelForCausalLM, AutoTokenizer
 from tqdm import tqdm
 
+from PIL import Image
+import requests
+
 def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
