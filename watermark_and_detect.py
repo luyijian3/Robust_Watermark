@@ -2,6 +2,7 @@ import json
 import torch
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
 from transformers import LogitsProcessorList
+from transformers import AutoProcessor,LlavaNextForConditionalGeneration
 from watermark import WatermarkLogitsProcessor, WatermarkWindow, WatermarkContext
 import argparse
 import os
@@ -13,25 +14,22 @@ def main(args):
 
     model_path = args.llm_path
     
-    if args.base_model == 'gpt2':
-        model = GPT2LMHeadModel.from_pretrained(model_path).to(device)
-        tokenizer = GPT2Tokenizer.from_pretrained(model_path)
-    elif args.base_model == 'llama':
-        model = AutoModelForCausalLM.from_pretrained(model_path, device_map = 'auto')
-        tokenizer = LlamaTokenizer.from_pretrained(model_path)
-    elif args.base_model == 'opt13b' or args.base_model == 'opt27b':
-        model = AutoModelForCausalLM.from_pretrained(model_path).to(device)
-        tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False)
+    if args.base_model == 'llava':
+        model = LlavaNextForConditionalGeneration.from_pretrained(model_path).to(device)
+        processor = AutoProcessor.from_pretrained(model_path) # include processor.tokenizer & processor.image_processor
+    else:
+        # currently use llava for testing
+        pass
 
-    if tokenizer.pad_token_id is None:
-        tokenizer.pad_token = tokenizer.eos_token
+    if processor.tokenizer.pad_token_id is None:
+        processor.tokenizer.pad_token = processor.tokenizer.eos_token
         model.config.pad_token_id = model.config.eos_token_id
 
     if args.watermark_type == "window": # use a window of previous tokens to hash, e.g. KGW
-        watermark_model = WatermarkWindow(device, args.window_size, tokenizer)
+        watermark_model = WatermarkWindow(device, args.window_size, processor)
         logits_processor = WatermarkLogitsProcessor(watermark_model)
     elif args.watermark_type == "context":
-        watermark_model = WatermarkContext(device, args.chunk_size, tokenizer, delta = args.delta,transform_model_path=args.transform_model, embedding_model=args.embedding_model)
+        watermark_model = WatermarkContext(device, args.chunk_size, processor, delta = args.delta,transform_model_path=args.transform_model, embedding_model=args.embedding_model)
         logits_processor = WatermarkLogitsProcessor(watermark_model)
     else:
         watermark_model, logits_processor = None, None
@@ -42,9 +40,12 @@ def main(args):
     output = []
     torch.manual_seed(0)
     pbar = tqdm(total=args.generate_number, desc="Generate watermarked text")
-    for line in lines:
-        data = json.loads(line)
-        text = data['text']
+    for line in lines[:1]:
+        #data = json.loads(line)
+        #text = data['text']
+        url = "http://images.cocodataset.org/val2017/000000039769.jpg"
+        image = Image.open(requests.get(url, stream=True).raw)
+        text = "[INST] <image>\nWhat is shown in this image? [/INST]"
         words = text.split()
 
         if len(words) < args.max_new_tokens or len(words)> 2*args.max_new_tokens:
@@ -52,7 +53,7 @@ def main(args):
         
         words = words[:args.prompt_size]
         begin_text = ' '.join(words)
-        inputs = tokenizer(begin_text, return_tensors="pt").to(device)
+        inputs = processor(begin_text,image, return_tensors="pt").to(device)
         
         generation_config = {
                 "max_length": args.max_new_tokens + 10,
@@ -70,7 +71,7 @@ def main(args):
 
         with torch.no_grad():
             outputs = model.generate(**inputs, **generation_config)
-            generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+            generated_text = processor.decode(outputs[0], skip_special_tokens=True)
             z_score_generated = watermark_model.detect(generated_text) if watermark_model else 0
             z_score_origin = watermark_model.detect(text) if watermark_model else 0
 

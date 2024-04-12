@@ -17,10 +17,10 @@ class WatermarkBase:
         self,
         gamma: float,
         delta: float,
-        target_tokenizer,
+        target_processor,
     ):
-        self.target_tokenizer =  target_tokenizer
-        self.vocab_size = len(self.target_tokenizer)
+        self.target_processor =  target_processor
+        self.vocab_size = len(target_processor.tokenizer)
         self.gamma = gamma
         self.delta = delta
 
@@ -53,13 +53,13 @@ class WatermarkContext(WatermarkBase):
         self,
         device: torch.device,
         chunk_length,
-        target_tokenizer,
+        target_processor,
         delta: float = 4.0,
         gamma: float = 0.5,
         embedding_model: str = "bert-large",
         transform_model_path: str = "transform_model.pth",
     ):
-        super().__init__(gamma, delta, target_tokenizer)
+        super().__init__(gamma, delta, target_processor)
         self.device = device
         self.embedding_tokenizer = AutoTokenizer.from_pretrained(embedding_model)
         self.embedding_model = BertModel.from_pretrained(embedding_model).to(self.device)
@@ -68,12 +68,12 @@ class WatermarkContext(WatermarkBase):
         transform_model.load_state_dict(torch.load(transform_model_path))
         self.transform_model = transform_model.to(self.device)
         water_mark_dim = self.transform_model.layers[-1].out_features
-        mapping_file = f"data/mappings/{water_mark_dim}_mapping_{len(target_tokenizer)}.json"
+        mapping_file = f"data/mappings/{water_mark_dim}_mapping_{self.vocab_size}.json"
         if os.path.exists(mapping_file):
             with open(mapping_file, 'r') as f:
                 self.mapping = json.load(f)
         else:
-            self.mapping = [random.randint(0, water_mark_dim-1) for _ in range(len(target_tokenizer))]
+            self.mapping = [random.randint(0, water_mark_dim-1) for _ in range(self.vocab_size)]
             os.makedirs(os.path.dirname(mapping_file), exist_ok=True)
             with open(mapping_file, 'w') as f:
                 json.dump(self.mapping, f, indent=4)
@@ -86,7 +86,7 @@ class WatermarkContext(WatermarkBase):
         return output[0][:, 0, :]
     
     def get_context_sentence(self, input_ids: torch.LongTensor):
-        sentence = self.target_tokenizer.decode(input_ids, skip_special_tokens=True)
+        sentence = self.target_processor.decode(input_ids, skip_special_tokens=True)
         words_2d = self.get_text_split(sentence)
         if len(words_2d[-1]) == self.chunk_length:
             return ''.join([''.join(group) for group in words_2d]).strip()
@@ -137,7 +137,7 @@ class WatermarkContext(WatermarkBase):
             context_embedding = self.get_embedding(context_sentence)
             output = self.transform_model(context_embedding).cpu()[0].numpy()
             similarity_array = self.scale_vector(output)[self.mapping]
-            tokens = self.target_tokenizer.encode(current_sentence, return_tensors="pt", add_special_tokens=False)
+            tokens = self.target_processor.tokenizer.encode(current_sentence, return_tensors="pt", add_special_tokens=False)
             for index in range(len(tokens[0])):
                 all_value.append(-float(similarity_array[tokens[0][index]]))
         return np.mean(all_value)
@@ -167,12 +167,12 @@ class WatermarkWindow(WatermarkBase):
         self,
         device,
         window_size,
-        target_tokenizer,
+        target_processor,
         gamma: float = 0.5,
         delta: float = 2.0,
         hash_key: int = 15485863,
     ):
-        super().__init__(gamma, delta, target_tokenizer)
+        super().__init__(gamma, delta, target_processor)
         self.device = device
         self.rng = torch.Generator(device=device)
         self.hash_key = hash_key
@@ -180,10 +180,10 @@ class WatermarkWindow(WatermarkBase):
 
     
     def detect(self, text: str = None):
-        input_ids = self.target_tokenizer.encode(text, add_special_tokens=False)
+        input_ids = self.target_processor.tokenizer.encode(text, add_special_tokens=False)
         count, total = 0, 0
         t_v_pair = []
-        input_symbols = self.target_tokenizer.convert_ids_to_tokens(input_ids)
+        input_symbols = self.target_processor.tokenizer.convert_ids_to_tokens(input_ids)
         for i in range(self.window_size, len(input_ids)):
             greenlist_ids = self._get_greenlist_ids(torch.tensor(input_ids[:i]))
             if input_ids[i] in greenlist_ids:

@@ -17,7 +17,7 @@
 - place dataset under 'data/sts/', place model anywhere you want, then change the `--model path` of the following command
 
 ```
-python generate_embeddings.py --input_path data/sts/train.jsonl --output_path data/embeddings/train_embeddings.txt --model_path xxx/compositional-bert-large-uncased --size 2000
+python generate_embeddings.py --input_path data/sts/train.jsonl --output_path data/embeddings/train_embeddings.txt --model_path perceptiveshawty/compositional-bert-large-uncased --size 2000
 ```
 
 ## Step2: Train watermark model
@@ -36,15 +36,15 @@ python analysis_transform_model.py  --embedding_file data/embeddings/train_embed
 
 ## Step3: Generate watermarked text & Detect:
 
-- generate mapping files, set `--length` according to length of LLM tokenizer
+- generate mapping files, set `--length` according to length of MLLM tokenizer
 
   ```
-  python generate_mappings.py --length 50257 --output_dir data/mappings/ 
+  python generate_mappings.py --length 32064 --output_dir data/mappings/ 
   ```
 - generate watermarked text & detect，set `--llm_path` and `--embedding_model` by yourself
 
   ```
-  python watermark_and_detect.py --watermark_type context --base_model gpt2 --llm_path xxx/gpt2/ --generate_number 10 --delta 1 --chunk_size 10 --max_new_tokens 200 --data_path data/dataset/c4_train_sample.jsonl --output_path output.json --transform_model model/transform_model_cbert.pth --embedding_model xxx/compositional-bert-large-uncased  --decode_method sample
+  python watermark_and_detect.py --watermark_type context --base_model gpt2 --llm_path gpt2 --generate_number 10 --delta 1 --chunk_size 10 --max_new_tokens 200 --data_path data/dataset/c4_train_sample.jsonl --output_path output.json --transform_model model/transform_model_cbert.pth --embedding_model perceptiveshawty/compositional-bert-large-uncased  --decode_method sample
   ```
 
   The format of output.json is as follows:
