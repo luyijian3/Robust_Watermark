@@ -43,7 +43,7 @@ def main(args):
     output = []
     torch.manual_seed(0)
     pbar = tqdm(total=args.generate_number, desc="Generate watermarked text")
-    for line in lines[:1]:
+    for line in lines:
         #data = json.loads(line)
         #text = data['text']
         url = "http://images.cocodataset.org/val2017/000000039769.jpg"
