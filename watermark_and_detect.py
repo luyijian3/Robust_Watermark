@@ -27,7 +27,7 @@ def main(args):
         processor.tokenizer.pad_token = processor.tokenizer.eos_token
         model.config.pad_token_id = model.config.eos_token_id
 
-    target_model_size=model.voab_size
+    target_model_size=model.vocab_size
 
     if args.watermark_type == "window": # use a window of previous tokens to hash, e.g. KGW
         watermark_model = WatermarkWindow(device, args.window_size, processor,target_model_size)
