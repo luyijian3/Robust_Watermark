@@ -111,7 +111,7 @@ if __name__ == "__main__":
     parser.add_argument('--transform_model', type=str, default="transform_model_cbert6.pth")
     parser.add_argument('--embedding_model', type=str, default="c-bert")
     parser.add_argument('--decode_method', type=str, default="sample")
-    parser.add_argument('--prompt_size', type=int, default=30)
+    parser.add_argument('--prompt_size', type=int, default=5)
     parser.add_argument('--beam_size', type=int, default=5)
 
     args = parser.parse_args()
