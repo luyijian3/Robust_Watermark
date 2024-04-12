@@ -50,6 +50,7 @@ def main(args):
         words = text.split()
 
         if len(words) < args.max_new_tokens or len(words)> 2*args.max_new_tokens:
+            print('stop here')
             continue
         
         words = words[:args.prompt_size]
