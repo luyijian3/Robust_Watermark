@@ -46,7 +46,7 @@ def main(args):
         #data = json.loads(line)
         #text = data['text']
         image = load_image_local('./test.png')
-        text = "[INST] <image>\nWhat is shown in this image? [/INST]"
+        text = "[INST] <image>\n Can you help to describe using a few words about what is shown in this image? [/INST]"
         words = text.split()
 
         if len(words) < args.max_new_tokens or len(words)> 2*args.max_new_tokens:
