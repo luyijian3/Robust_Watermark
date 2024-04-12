@@ -2,7 +2,7 @@
 
 # A Semantic Invariant Robust (SIR) Watermark for Large Language Models
 
-![SIR](./figs/r-robust-model.png)
+
 
 ## Conda Environment
 
