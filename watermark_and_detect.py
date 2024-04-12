@@ -70,12 +70,14 @@ def main(args):
         if watermark_model is not None:
             generation_config["logits_processor"] = LogitsProcessorList([logits_processor])
         
+        print('generating...')
+
         with torch.no_grad():
             outputs = model.generate(**inputs, **generation_config)
             generated_text = processor.decode(outputs[0], skip_special_tokens=True)
             z_score_generated = watermark_model.detect(generated_text) if watermark_model else 0
             z_score_origin = watermark_model.detect(text) if watermark_model else 0
-
+        print('generated...')
         if len(outputs[0]) > args.max_new_tokens - 20:
             output.append({
                 'original_text': text, 
@@ -84,6 +86,9 @@ def main(args):
                 'z_score_generated': z_score_generated
             })
             pbar.update(1)
+        else:
+            print('not long enough')
+            print(generated_text)
         if len(output) >= args.generate_number:
             break
 
