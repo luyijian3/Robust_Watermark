@@ -50,6 +50,9 @@ def main(args):
         image = load_image_local('./test.png')
         text = "[INST] <image>\n Can you help to describe using a few words about what is shown in this image? [/INST]"
         words = text.split()
+        human_text='Cats, also known as domestic cats (Felis catus), have been companions to humans for thousands of years. \
+        These small, carnivorous mammals have captivated our hearts with their grace, independence, and enigmatic nature. \
+        Whether they"re lounging lazily in a sunbeam, pouncing on a toy, or curling up on our laps, cats have a way of bringing joy and comfort to our lives.'
 
         if len(words) < args.prompt_size or len(words)> 2*args.max_new_tokens:
             continue
@@ -78,7 +81,7 @@ def main(args):
             outputs = model.generate(**inputs, **generation_config)
             generated_text = processor.decode(outputs[0], skip_special_tokens=True)
             z_score_generated = watermark_model.detect(generated_text) if watermark_model else 0
-            z_score_origin = watermark_model.detect(text) if watermark_model else 0
+            z_score_origin = watermark_model.detect(human_text) if watermark_model else 0
         print('generated...')
         if len(outputs[0]) > args.max_new_tokens - 20:
             output.append({
