@@ -9,7 +9,7 @@ import os
 from transformers import LlamaTokenizer, AutoModelForCausalLM, AutoTokenizer
 from tqdm import tqdm
 
-from .util import load_image_local
+from util import load_image_local
 
 def main(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -45,7 +45,7 @@ def main(args):
     for line in lines:
         #data = json.loads(line)
         #text = data['text']
-        image = load_image_local('./text.png')
+        image = load_image_local('./test.png')
         text = "[INST] <image>\nWhat is shown in this image? [/INST]"
         words = text.split()
 
