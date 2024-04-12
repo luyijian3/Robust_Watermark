@@ -52,7 +52,7 @@ def main(args):
         if len(words) < args.prompt_size or len(words)> 2*args.max_new_tokens:
             continue
         
-        words = words[:args.prompt_size]
+        #words = words[:args.prompt_size]
         begin_text = ' '.join(words)
         inputs = processor(begin_text,image, return_tensors="pt").to(device)
         
